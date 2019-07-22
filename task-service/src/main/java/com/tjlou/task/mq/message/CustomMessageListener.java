@@ -3,6 +3,7 @@ package com.tjlou.task.mq.message;
 import com.alibaba.fastjson.JSONObject;
 import com.gaby.mq.QueueBean;
 import com.tjlou.task.list.ConfirmTaskOrderRunnable;
+import com.tjlou.task.list.JudgeRunnable;
 import com.tjlou.task.list.NoPayOrderRunnable;
 import com.tjlou.task.list.ThawRunnable;
 import com.tjlou.task.schedule.MerakTaskScheduler;
@@ -41,12 +42,18 @@ public class CustomMessageListener implements MessageListener, BeanFactoryAware 
                     break;
                 case 3://7天解除解冻
                     ThawRunnable thawRunnable = (ThawRunnable) beanFactory.getBean("thawRunnable");
-                    thawRunnable.setBalanceId(queueBean.getId());
+                    thawRunnable.setQueueBean(queueBean);
                     merakTaskScheduler.schedule(thawRunnable,queueBean.getDate());
                     break;
-                case 4://卖家拒绝退款后，如买家不再申请退款，则 2天后取消。
+                case 4://卖家拒绝退款后，如买家不再申请退款，则 2天后取消。--相当于平台判决拒绝
+                    JudgeRunnable rejectRunnable = (JudgeRunnable) beanFactory.getBean("judgeRunnable");
+                    rejectRunnable.setQueueBean(queueBean);
+                    merakTaskScheduler.schedule(rejectRunnable,queueBean.getDate());
                     break;
-                case 5://买家申请退款后，卖家3天不处理，则退款成功。
+                case 5://买家申请退款后，卖家3天不处理，则退款成功。--相当于平台判决同意
+                    JudgeRunnable agreeRunnable = (JudgeRunnable) beanFactory.getBean("judgeRunnable");
+                    agreeRunnable.setQueueBean(queueBean);
+                    merakTaskScheduler.schedule(agreeRunnable,queueBean.getDate());
                     break;
             }
         } catch (JMSException e) {

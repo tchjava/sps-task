@@ -1,6 +1,7 @@
 package com.tjlou.task.list;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.gaby.mq.QueueBean;
 import com.tjlou.mybatis.auto.mysql.sps.entity.BillBalanceInfo;
 import com.tjlou.mybatis.auto.mysql.sps.entity.BillBalanceLog;
 import com.tjlou.mybatis.auto.mysql.sps.service.BillBalanceInfoService;
@@ -21,7 +22,7 @@ import java.util.Date;
 @Component
 public class ThawRunnable implements Runnable{
 
-    private Long balanceId;
+    private QueueBean queueBean;
 
     @Autowired
     private BillBalanceInfoService billBalanceInfoService;
@@ -30,14 +31,14 @@ public class ThawRunnable implements Runnable{
 
 
     public ThawRunnable(){}
-    public ThawRunnable(Long balanceId) {
-        this.balanceId = balanceId;
+    public ThawRunnable(QueueBean queueBean) {
+        this.queueBean = queueBean;
     }
 
     @Override
     public void run() {
         //根据余额标识查询余额信息
-        BillBalanceInfo billBalanceInfo = billBalanceInfoService.selectById(balanceId);
+        BillBalanceInfo billBalanceInfo = billBalanceInfoService.selectById(queueBean.getId());
         //00D -超消保金冻结
         if (null != billBalanceInfo && "00D".equals(billBalanceInfo.getStatus())) {
             BillBalanceInfo update = new BillBalanceInfo();
@@ -64,7 +65,7 @@ public class ThawRunnable implements Runnable{
         }
     }
 
-    public void setBalanceId(Long balanceId) {
-        this.balanceId = balanceId;
+    public void setQueueBean(QueueBean queueBean) {
+        this.queueBean = queueBean;
     }
 }

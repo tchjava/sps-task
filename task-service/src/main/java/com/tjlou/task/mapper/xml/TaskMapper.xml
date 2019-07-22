@@ -23,4 +23,59 @@
         WHERE
             oi.`status` = 4
     </select>
+    <select id="queryThaw" resultType="com.tjlou.task.model.task.init.ThawItem">
+        SELECT
+            bi.id AS balanceId,
+            IFNULL( bi.modify_time, bi.create_time ) AS `date`
+        FROM
+            bill_balance_info bi
+        WHERE
+            bi.`status` = '00D'
+    </select>
+    <select id="queryApplicationRefundInfo" resultType="com.tjlou.task.model.task.init.ApplicationItem">
+        SELECT
+            ri.id AS refundId,
+            IFNULL( ri.modify_time, ri.create_time ) AS modifyTime,
+            (
+            SELECT
+                pi.app_key
+            FROM
+                order_info oi,
+                supplier_info si,
+                platform_info pi
+            WHERE
+                oi.id = ri.order_id
+                AND oi.supplier_id = si.id
+                AND si.app_id = pi.id
+                AND si.`status` = '00A'
+                AND pi.`status` = '00A'
+            ) AS appKey
+        FROM
+            refund_info ri
+        WHERE
+            ri.`status` =1
+    </select>
+    <select id="queryRejectRefundInfo" resultType="com.tjlou.task.model.task.init.RejectItem">
+        SELECT
+            ri.id AS refundId,
+            IFNULL( ri.modify_time, ri.create_time ) AS modifyTime,
+            (
+            SELECT
+                pi.app_key
+            FROM
+                order_info oi,
+                supplier_info si,
+                platform_info pi
+            WHERE
+                oi.id = ri.order_id
+                AND oi.supplier_id = si.id
+                AND si.app_id = pi.id
+                AND si.`status` = '00A'
+                AND pi.`status` = '00A'
+            ) AS appKey
+        FROM
+            refund_info ri
+        WHERE
+            ri.`status` = 16
+    </select>
 </mapper>

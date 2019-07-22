@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
-*@discrption:查询订单信息以及appid
+*@discrption:查询订单信息以及appid (可自动收货)
 *@user:Gaby
 *@createTime:2019-07-22 11:25
 */
