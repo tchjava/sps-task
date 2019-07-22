@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjlou.task.mapper.dao.TaskDao">
+
+    <select id="queryReceiveOrder" resultType="com.tjlou.task.model.task.init.Item">
+        SELECT
+            oi.id AS orderId,
+            oi.consign_time,
+            (
+            SELECT
+                pi.app_key
+            FROM
+                supplier_info si,
+                platform_info pi
+            WHERE
+                si.app_id = pi.id
+                AND pi.`status` = '00A'
+                AND si.`status` = '00A'
+                AND si.id = oi.supplier_id
+            ) AS appKey
+        FROM
+            order_info oi
+        WHERE
+            oi.`status` = 4
+    </select>
+</mapper>

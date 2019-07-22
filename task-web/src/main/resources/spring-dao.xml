@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <!-- 数据库连接池 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+        <property name="driverClassName" value="${jdbc.driver}" />
+        <property name="maxActive" value="${jdbc.maxActive}" />
+        <property name="minIdle" value="${jdbc.minIdle}" />
+        <property name="initialSize" value="${jdbc.initialSize}"/>
+        <property name="poolPreparedStatements" value="${jdbc.poolPreparedStatements}"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="${jdbc.maxPoolPreparedStatementPerConnectionSize}"/>
+    </bean>
+    <!-- 让spring管理sqlsessionfactory 使用mybatis和spring整合包中的 -->
+    <!-- SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="com.baomidou.mybatisplus.spring.MybatisSqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:spring-mybatis.xml"></property>
+        <!--<property name="plugins">-->
+        <!--<array>-->
+        <!--<bean id="paginationInterceptor" class="com.baomidou.mybatisplus.plugins.PaginationInterceptor">-->
+        <!--<property name="dialectType" value="mysql"/>-->
+        <!--</bean>-->
+        <!--</array>-->
+        <!--</property>-->
+        <!-- 自动扫描 Xml 文件位置 -->
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:com/tjlou/**/mapper/xml/**/*.xml</value>
+            </list>
+        </property>
+        <!--<property name="typeAliasesPackage" value="com.pinyougou.**.pojo"/>-->
+        <!--<property name="typeAliasesSuperType" value="java.lang.Object"/>-->
+
+        <property name="globalConfig" ref="globalConfig" />
+    </bean>
+    <bean id="globalConfig" class="com.baomidou.mybatisplus.entity.GlobalConfiguration">
+        <!--
+            AUTO->`0`("数据库ID自增")
+             INPUT->`1`(用户输入ID")
+            ID_WORKER->`2`("全局唯一ID")
+            UUID->`3`("全局唯一ID")
+        -->
+        <!--<property name="idType" value="2" />-->
+        <!--
+            MYSQL->`mysql`
+            ORACLE->`oracle`
+            DB2->`db2`
+            H2->`h2`
+            HSQL->`hsql`
+            SQLITE->`sqlite`
+            POSTGRE->`postgresql`
+            SQLSERVER2005->`sqlserver2005`
+            SQLSERVER->`sqlserver`
+        -->
+        <!-- Oracle需要添加该项 -->
+        <!-- <property name="dbType" value="oracle" /> -->
+        <!-- 全局表为下划线命名设置 true -->
+        <property name="dbColumnUnderline" value="true" />
+    </bean>
+
+    <!--事务-->
+    <bean id="txTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--通知-->
+    <tx:advice id="txAdvice" transaction-manager="txTransactionManager">
+        <tx:attributes>
+            <tx:method name="query*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="select*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="*" propagation="REQUIRED" rollback-for="Exception" />
+
+        </tx:attributes>
+    </tx:advice>
+    <!--声明式事务-->
+    <tx:annotation-driven transaction-manager="txTransactionManager"></tx:annotation-driven>
+    <!--配置自定义切面类-->
+    <!--<bean id="insertLastIdAsp" class="com.pinyougou.aspect.LastInsertIdAspectHelper"></bean>-->
+
+    <!--配置切面-->
+    <aop:config>
+        <aop:pointcut id="txPointCut" expression="execution(* com.tjlou..*.facade..*.*(..))"></aop:pointcut>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+    </aop:config>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.tjlou.**.mapper" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+</beans>
