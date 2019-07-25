@@ -1,6 +1,5 @@
 package com.tjlou.task.list;
 
-import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.gaby.mq.QueueBean;
 import com.tjlou.mybatis.auto.mysql.sps.entity.BillBalanceInfo;
 import com.tjlou.mybatis.auto.mysql.sps.entity.BillBalanceLog;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -38,30 +36,26 @@ public class ThawRunnable implements Runnable{
     @Override
     public void run() {
         //根据余额标识查询余额信息
-        BillBalanceInfo billBalanceInfo = billBalanceInfoService.selectById(queueBean.getId());
-        //00D -超消保金冻结
-        if (null != billBalanceInfo && "00D".equals(billBalanceInfo.getStatus())) {
+        BillBalanceLog balanceLog = billBalanceLogService.selectById(queueBean.getId());
+        BillBalanceInfo billBalanceInfo = billBalanceInfoService.selectById(balanceLog.getBalanceId());
+        //00D -超消保金冻结  解冻时 总额不增加 可用余额增加
+        if (null != balanceLog && "00D".equals(balanceLog.getStatus())) {
             BillBalanceInfo update = new BillBalanceInfo();
             update.setId(billBalanceInfo.getId());
+            update.setUsableBalance(billBalanceInfo.getUsableBalance()+balanceLog.getChangeNum());
             update.setModifyTime(new Date());
-            update.setStatus("00A");
             billBalanceInfoService.updateById(update);
 
-            //根据用户标识查询最后的结余金额
-           BillBalanceLog db_balanceLog= billBalanceLogService.selectOne(new EntityWrapper<BillBalanceLog>().eq(BillBalanceLog.USER_ACCOUNT_ID, billBalanceInfo.getUserAccountId())
-                    .orderDesc(Arrays.asList(BillBalanceLog.CHANGE_TIME)));
-
-           //添加到日志
-            BillBalanceLog balanceLogInsert = new BillBalanceLog();
-            balanceLogInsert.setBlanceId(update.getId());
-            balanceLogInsert.setBlanceNum(db_balanceLog.getBlanceNum());
-            balanceLogInsert.setChangeNum(billBalanceInfo.getBlance());
-            balanceLogInsert.setChangeTime(update.getModifyTime());
+            //更新日志
+            BillBalanceLog balanceLogUpdate = new BillBalanceLog();
+            balanceLogUpdate.setId(balanceLog.getId());
             //2-收款
-            balanceLogInsert.setChangeType(2);
-            balanceLogInsert.setSourceId(billBalanceInfo.getBalanceRelaId());
-            balanceLogInsert.setUserAccountId(billBalanceInfo.getUserAccountId());
-            billBalanceLogService.insert(balanceLogInsert);
+            balanceLogUpdate.setChangeType(2);
+            balanceLogUpdate.setBlanceNum(billBalanceInfo.getBalance());
+            balanceLogUpdate.setChangeTime(new Date());
+            balanceLogUpdate.setStatus("00A");
+            balanceLogUpdate.setComment("订单标识-"+balanceLogUpdate.getSourceId()+"确认后七天自动解冻");
+            billBalanceLogService.updateById(balanceLogUpdate);
         }
     }
 
