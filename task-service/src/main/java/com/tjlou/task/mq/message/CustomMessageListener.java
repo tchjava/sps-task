@@ -45,12 +45,12 @@ public class CustomMessageListener implements MessageListener, BeanFactoryAware 
                     thawRunnable.setQueueBean(queueBean);
                     merakTaskScheduler.schedule(thawRunnable,queueBean.getDate());
                     break;
-                case 4://卖家拒绝退款后，如买家不再申请退款，则 2天后取消。--相当于平台判决拒绝
+                case 4://卖家拒绝退款后，如买家不再申请退款，则 2天后取消。--相当于用户取消退款
                     JudgeRunnable rejectRunnable = (JudgeRunnable) beanFactory.getBean("judgeRunnable");
                     rejectRunnable.setQueueBean(queueBean);
                     merakTaskScheduler.schedule(rejectRunnable,queueBean.getDate());
                     break;
-                case 5://买家申请退款后，卖家3天不处理，则退款成功。--相当于平台判决同意
+                case 5://买家申请退款后，卖家3天不处理，则退款成功。--相当于商家同意退款
                     JudgeRunnable agreeRunnable = (JudgeRunnable) beanFactory.getBean("judgeRunnable");
                     agreeRunnable.setQueueBean(queueBean);
                     merakTaskScheduler.schedule(agreeRunnable,queueBean.getDate());

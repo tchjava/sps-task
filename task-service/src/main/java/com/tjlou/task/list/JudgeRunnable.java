@@ -31,8 +31,8 @@ public class JudgeRunnable implements Runnable{
     @Override
     public void run() {
         try {
-            String params = String.format("{platform:%s,refundId:%s,type:%s}",
-                    DESUtil.desEncript(this.queueBean.getAppKey(),DESUtil.DEFAULT_KEY),this.queueBean.getId(),this.queueBean.getExtend().get("type").toString());
+            String params = String.format("{platform:%s,refundId:%s}",
+                    DESUtil.desEncript(this.queueBean.getAppKey(),DESUtil.DEFAULT_KEY),this.queueBean.getId());
             apiService.doPost(this.queueBean.getNotifyUrl(), params);
         } catch (Exception e) {
             e.printStackTrace();

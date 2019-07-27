@@ -1,6 +1,5 @@
 package com.tjlou.task.facade;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.gaby.mq.QueueBean;
 import com.gaby.util.DateUtil;
@@ -46,6 +45,9 @@ public class TaskFacade implements BeanFactoryAware {
     @Value("${task.judgeTaskNotifyUrl}")
     private String judgeTaskNotifyUrl;
 
+    @Value("${task.agreeNotifyUrl}")
+    private String agreeNotifyUrl;
+
     @PostConstruct
     public void init(){
         //查询待付款的订单
@@ -82,7 +84,7 @@ public class TaskFacade implements BeanFactoryAware {
                 merakTaskScheduler.schedule(thawRunnable,DateUtil.addMinute(DateUtil.addDay(thawItem.getDate(),7),1));
             });
         }
-        //查询申请退款的记录 3天不处理就退款成功
+        //查询申请退款的记录 3天不处理就退款成功  --相当于卖家同意退款
         List<ApplicationItem> applicationItems = taskService.queryApplicationRefundInfo();
         if (CollectionUtils.isNotEmpty(applicationItems)) {
             applicationItems.stream().forEach(applicationItem -> {
@@ -90,9 +92,7 @@ public class TaskFacade implements BeanFactoryAware {
                 QueueBean queueBean = new QueueBean();
                 queueBean.setId(applicationItem.getRefundId());
                 queueBean.setAppKey(applicationItem.getAppKey());
-                queueBean.setNotifyUrl(judgeTaskNotifyUrl);
-                //设置拓展字段type:1-拒绝 2-退款
-                queueBean.setExtend(JSONObject.parseObject("{type:2}"));
+                queueBean.setNotifyUrl(agreeNotifyUrl);
                 judgeRunnable.setQueueBean(queueBean);
                 merakTaskScheduler.schedule(judgeRunnable,DateUtil.addMinute(DateUtil.addDay(applicationItem.getModifyTime(),3),1));
             });
@@ -107,7 +107,6 @@ public class TaskFacade implements BeanFactoryAware {
                 queueBean.setAppKey(rejectItem.getAppKey());
                 queueBean.setId(rejectItem.getRefundId());
                 queueBean.setNotifyUrl(judgeTaskNotifyUrl);
-                queueBean.setExtend(JSONObject.parseObject("{type:1}"));
                 //设置拓展字段type:1-拒绝 2-退款
                 judgeRunnable.setQueueBean(queueBean);
                 merakTaskScheduler.schedule(judgeRunnable,DateUtil.addMinute(DateUtil.addDay(rejectItem.getModifyTime(),3),1));
