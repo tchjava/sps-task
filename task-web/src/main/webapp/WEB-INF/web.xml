@@ -42,6 +42,6 @@
 
   <servlet-mapping>
     <servlet-name>springmvc</servlet-name>
-    <url-pattern>/</url-pattern>
+    <url-pattern>/task/*</url-pattern>
   </servlet-mapping>
 </web-app>

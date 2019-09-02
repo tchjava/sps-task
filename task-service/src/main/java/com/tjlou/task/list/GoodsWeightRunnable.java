@@ -74,8 +74,6 @@ public class GoodsWeightRunnable implements Runnable {
                 });
                 goodsService.updateBatchById(goodsInfos);
             }
-            logger.info("完成权重计算");
-
             lock.unlock();
         } catch (Exception e) {
             e.printStackTrace();
