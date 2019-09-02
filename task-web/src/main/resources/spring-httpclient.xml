@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+    <bean id="connectionManager" class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager">
+        <property name="maxTotal" value="${httpclient.maxTotal}"></property>
+        <property name="defaultMaxPerRoute" value="${httpclient.defaultMaxPerRoute}"></property>
+    </bean>
+
+    <!--httpclient构造器-->
+    <bean id="httpClientBuilder" class="org.apache.http.impl.client.HttpClientBuilder">
+        <property name="connectionManager" ref="connectionManager"></property>
+    </bean>
+
+
+    <!--具有代理的httpclient构造器-->
+    <!--<bean id="proxyHttpClientBuilder" class="org.apache.http.impl.client.HttpClientBuilder">-->
+        <!--<property name="connectionManager" ref="connectionManager"></property>-->
+        <!--<property name="defaultCredentialsProvider" ref="basicCredentialsProvider"></property>-->
+    <!--</bean>-->
+    <!--&lt;!&ndash;BasicCredentialsProvider 代理凭证&ndash;&gt;-->
+    <!--<bean id="basicCredentialsProvider" class="com.tjlou.wpt.httpclient.provider.CustomCredentialsProvider">-->
+        <!--<property name="credentials" ref="usernamePasswordCredentials"></property>-->
+    <!--</bean>-->
+    <!--&lt;!&ndash;UsernamePasswordCredentials&ndash;&gt;-->
+    <!--<bean id="usernamePasswordCredentials" class="org.apache.http.auth.UsernamePasswordCredentials">-->
+        <!--<constructor-arg index="0" value="${16yun.proxyUser}"/>-->
+        <!--<constructor-arg index="1" value="${16yun.proxyPass}"/>-->
+    <!--</bean>-->
+
+
+    <!--httpclient对象,多例-->
+    <bean  id="httpClient" class="org.apache.http.impl.client.CloseableHttpClient"
+          factory-bean="httpClientBuilder" factory-method="build"
+    scope="prototype">
+
+    </bean>
+
+    <!--&lt;!&ndash;代理httpclient对象,多例&ndash;&gt;-->
+    <!--<bean  id="proxyHttpClient" class="org.apache.http.impl.client.CloseableHttpClient"-->
+           <!--factory-bean="proxyHttpClientBuilder" factory-method="build"-->
+           <!--scope="prototype">-->
+
+    <!--</bean>-->
+
+
+
+
+    <!--Builder-->
+    <bean id="builder" class="org.apache.http.client.config.RequestConfig.Builder">
+        <property name="connectTimeout" value="${httpclient.connectTimeout}"/>
+        <property name="connectionRequestTimeout" value="${httpclient.connectionRequestTimeout}"/>
+        <property name="socketTimeout" value="${httpclient.socketTimeout}"/>
+    </bean>
+
+
+    <!--代理ip的builder-->
+    <!--<bean id="proxy_builder" class="org.apache.http.client.config.RequestConfig.Builder">-->
+        <!--<property name="connectTimeout" value="${httpclient.connectTimeout}"/>-->
+        <!--<property name="connectionRequestTimeout" value="${httpclient.connectionRequestTimeout}"/>-->
+        <!--<property name="socketTimeout" value="${httpclient.socketTimeout}"/>-->
+        <!--<property name="proxy" ref="httpHost"></property>-->
+    <!--</bean>-->
+
+    <!--代理ip的builder   特殊的针对发送聊天内容那的-->
+    <!--<bean id="proxy_msg_builder" class="org.apache.http.client.config.RequestConfig.Builder">-->
+        <!--<property name="connectTimeout" value="${httpclient.msg.connectTimeout}"/>-->
+        <!--<property name="connectionRequestTimeout" value="${httpclient.msg.connectionRequestTimeout}"/>-->
+        <!--<property name="socketTimeout" value="${httpclient.msg.socketTimeout}"/>-->
+        <!--<property name="proxy" ref="httpHost"></property>-->
+    <!--</bean>-->
+    <!--&lt;!&ndash;代理服务器&ndash;&gt;-->
+    <!--<bean id="httpHost" class="org.apache.http.HttpHost">-->
+        <!--<constructor-arg index="0" value="${16yun.proxyHost}"></constructor-arg>-->
+        <!--<constructor-arg index="1" value="${16yun.proxyPort}"></constructor-arg>-->
+    <!--</bean>-->
+
+
+    <!--请求配置对象-->
+    <bean id="requestConfig" class="org.apache.http.client.config.RequestConfig" factory-bean="builder" factory-method="build"/>
+
+    <!--请求代理的配置对象-->
+    <!--<bean id="proxyRequestConfig" class="org.apache.http.client.config.RequestConfig" factory-bean="proxy_builder" factory-method="build">-->
+    <!--</bean>-->
+    <!--请求代理的配置对象 特殊：发送聊天-->
+    <!--<bean id="proxyMsgRequestConfig" class="org.apache.http.client.config.RequestConfig" factory-bean="proxy_msg_builder" factory-method="build"/>-->
+
+
+    <!--定期清理无效连接-->
+    <bean class="com.gaby.http.clear.IdleConnectionEvictor">
+        <constructor-arg index="0" ref="connectionManager"/>
+    </bean>
+</beans>

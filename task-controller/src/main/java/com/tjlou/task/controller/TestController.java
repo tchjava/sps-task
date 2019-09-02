@@ -1,7 +1,6 @@
 package com.tjlou.task.controller;
 
 import com.gaby.model.DefaultResponse;
-import com.tjlou.task.list.NoPayOrderRunnable;
 import com.tjlou.task.model.task.add.Request;
 import com.tjlou.task.schedule.MerakTaskScheduler;
 import org.springframework.beans.factory.BeanFactory;
@@ -21,15 +20,7 @@ public class TestController implements BeanFactoryAware {
     @Autowired
     private BeanFactory beanFactory;
 
-    private NoPayOrderRunnable noPayOrderRunnable;
 
-    @RequestMapping("add")
-    public DefaultResponse add(@RequestBody Request request) {
-        NoPayOrderRunnable noPayOrderRunnable = getNoPayOrderRunnable();
-        noPayOrderRunnable.setId(request.getId());
-        merakTaskScheduler.schedule(noPayOrderRunnable,request.getDate());
-        return null;
-    }
 
     @RequestMapping("reset")
     public DefaultResponse reset() {
@@ -41,8 +32,5 @@ public class TestController implements BeanFactoryAware {
         this.beanFactory = beanFactory;
     }
 
-    public NoPayOrderRunnable getNoPayOrderRunnable() {
-        noPayOrderRunnable= (NoPayOrderRunnable) beanFactory.getBean("noPayOrderRunnable");
-        return noPayOrderRunnable;
-    }
+
 }
