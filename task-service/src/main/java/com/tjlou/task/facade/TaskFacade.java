@@ -1,5 +1,6 @@
 package com.tjlou.task.facade;
 
+import com.tjlou.task.list.GoodsCjgWeightRunnable;
 import com.tjlou.task.list.GoodsWeightRunnable;
 import com.tjlou.task.schedule.MerakTaskScheduler;
 import org.springframework.beans.BeansException;
@@ -24,6 +25,10 @@ public class TaskFacade implements BeanFactoryAware {
         GoodsWeightRunnable goodsWeightRunnable = (GoodsWeightRunnable) beanfactory.getBean("goodsWeightRunnable");
         //0 0 5 * * ?
         merakTaskScheduler.schedule(goodsWeightRunnable,"0 0/1 * * * ?");
+
+        //超级购活动中的商品权重  每天五点
+        GoodsCjgWeightRunnable goodsCjgWeightRunnable = (GoodsCjgWeightRunnable) beanfactory.getBean("goodsCjgWeightRunnable");
+        merakTaskScheduler.schedule(goodsCjgWeightRunnable, "0 0 5 * * ?");
     }
 
 

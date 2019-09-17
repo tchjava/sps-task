@@ -74,10 +74,10 @@ public class GoodsWeightRunnable implements Runnable {
                 });
                 goodsService.updateBatchById(goodsInfos);
             }
-            lock.unlock();
         } catch (Exception e) {
             e.printStackTrace();
         }finally{
+            lock.unlock();
             jedis.close();
         }
     }
