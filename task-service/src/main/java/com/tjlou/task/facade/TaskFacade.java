@@ -24,7 +24,7 @@ public class TaskFacade implements BeanFactoryAware {
     public void init(){
         GoodsWeightRunnable goodsWeightRunnable = (GoodsWeightRunnable) beanfactory.getBean("goodsWeightRunnable");
         //0 0 5 * * ?
-        merakTaskScheduler.schedule(goodsWeightRunnable,"0 0/1 * * * ?");
+        merakTaskScheduler.schedule(goodsWeightRunnable,"0 0/5 * * * ?");
 
         //超级购活动中的商品权重  每天五点
         GoodsCjgWeightRunnable goodsCjgWeightRunnable = (GoodsCjgWeightRunnable) beanfactory.getBean("goodsCjgWeightRunnable");
