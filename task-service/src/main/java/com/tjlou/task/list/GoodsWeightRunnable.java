@@ -70,6 +70,10 @@ public class GoodsWeightRunnable implements Runnable {
                     update.setWeight(weightModel.getScore());
                     goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().eq(GoodsExtInfo.GOODS_ID, weightModel.getGoodsId()));
                 });
+                //其余商品 权重清0
+                GoodsExtInfo update = new GoodsExtInfo();
+                update.setWeight(0d);
+                goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().notIn(GoodsExtInfo.GOODS_ID, data.stream().map(x -> x.getGoodsId())));
             }
         } catch (Exception e) {
             e.printStackTrace();
