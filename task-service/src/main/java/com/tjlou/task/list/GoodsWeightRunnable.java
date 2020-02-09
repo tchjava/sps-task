@@ -69,7 +69,6 @@ public class GoodsWeightRunnable implements Runnable {
                     GoodsExtInfo update = new GoodsExtInfo();
                     update.setWeight(weightModel.getScore());
                     goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().eq(GoodsExtInfo.GOODS_ID, weightModel.getGoodsId()));
-                    goodsExtInfoService.updateById(update);
                 });
             }
         } catch (Exception e) {
