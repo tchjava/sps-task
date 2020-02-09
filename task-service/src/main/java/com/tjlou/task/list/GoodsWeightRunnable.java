@@ -1,13 +1,13 @@
 package com.tjlou.task.list;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.gaby.lock.ContentionLock;
 import com.gaby.util.DateUtil;
-import com.tjlou.mybatis.auto.mysql.sps.entity.GoodsInfo;
+import com.tjlou.mybatis.auto.mysql.sps.entity.GoodsExtInfo;
+import com.tjlou.mybatis.auto.mysql.sps.service.GoodsExtInfoService;
 import com.tjlou.task.goods.WeightModel;
 import com.tjlou.task.service.GoodsService;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
@@ -18,7 +18,6 @@ import redis.clients.jedis.Jedis;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -31,10 +30,11 @@ import java.util.List;
 @Component
 public class GoodsWeightRunnable implements Runnable {
 
-    private Logger logger = LoggerFactory.getLogger(GoodsWeightRunnable.class);
-
     @Autowired
     private GoodsService goodsService;
+
+    @Autowired
+    private GoodsExtInfoService goodsExtInfoService;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -60,19 +60,17 @@ public class GoodsWeightRunnable implements Runnable {
             //得到脚本管理器
             ScriptEngine js = new ScriptEngineManager().getEngineByExtension("js");
             if (CollectionUtils.isNotEmpty(data)) {
-                List<GoodsInfo> goodsInfos = new ArrayList<>();
                 data.forEach(weightModel -> {
                     try {
                         weightModel.setScore(Double.valueOf(js.eval(weightModel.getCompute()).toString()));
                     } catch (ScriptException e) {
                         e.printStackTrace();
                     }
-                    GoodsInfo update = new GoodsInfo();
-                    update.setId(weightModel.getGoodsId());
+                    GoodsExtInfo update = new GoodsExtInfo();
                     update.setWeight(weightModel.getScore());
-                    goodsInfos.add(update);
+                    goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().eq(GoodsExtInfo.GOODS_ID, weightModel.getGoodsId()));
+                    goodsExtInfoService.updateById(update);
                 });
-                goodsService.updateBatchById(goodsInfos);
             }
         } catch (Exception e) {
             e.printStackTrace();
