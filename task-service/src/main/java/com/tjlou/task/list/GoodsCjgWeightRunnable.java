@@ -16,7 +16,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -59,16 +58,14 @@ public class GoodsCjgWeightRunnable implements Runnable{
             //获取到每个商品的点击数和成交数
             List<GoodsCjgWeightModel> goodsCjgWeightModels = goodsService.queryGoodsCjgWeight(startTime,endTime);
             if (CollectionUtils.isNotEmpty(goodsCjgWeightModels)) {
-                List<GoodsExtInfo> updates = new ArrayList<>();
                 for (GoodsCjgWeightModel model : goodsCjgWeightModels) {
                     GoodsExtInfo update = new GoodsExtInfo();
+                    update.setId(model.getGoodsId());
                     update.setGoodsId(model.getGoodsId());
                     // 权重值=订单数/点击数
                     update.setCjgWeight(model.getOrderNum() / model.getClickNum());
-                    updates.add(update);
-
+                    goodsExtInfoService.updateById(update);
                 }
-                goodsExtInfoService.updateBatchById(updates);
                 logger.info("完成了超级购活动的商品权重计算");
             }
         } catch (Exception e) {

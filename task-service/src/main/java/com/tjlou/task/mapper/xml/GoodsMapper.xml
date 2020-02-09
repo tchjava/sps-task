@@ -2,69 +2,48 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tjlou.task.mapper.dao.GoodsDao">
     <select id="queryGoodsWeightData" resultType="com.tjlou.task.goods.WeightModel">
-SELECT
-                r.id AS goodsId,
-                CONCAT_WS(
-                    '+',
-                    concat( '(', r.click, gwi.click_operator, gwi.click_rate, ')' ),
-                    concat( '(', r.`share`, gwi.share_operator, gwi.share_rate, ')' ),
-                    concat( '(', r.sharein, gwi.sharein_operator, gwi.sharein_rate, ')' ),
-                    concat( '(', r.collectNum, gwi.collect_operator, gwi.collect_rate, ')' ),
-                concat( '(', r.orderNum, gwi.pay_operator, gwi.pay_rate, ')' )) AS compute
-            FROM
-                (
-                SELECT
-                    gi.id,
-                    ( SELECT COUNT( 1 ) FROM order_item_info oii WHERE oii.goods_id = gi.id AND oii.create_time BETWEEN #{startTime} AND #{endTime} ) AS orderNum,
+            SELECT
+                goods_id,
+                GROUP_CONCAT(
                     (
-                    SELECT
-                        COUNT( 1 )
-                    FROM
-                        collect_info ci
-                    WHERE
-                        ci.`status` = '00A'
-                        AND ci.goods_id = gi.id
-                        AND ci.create_time BETWEEN #{startTime}
-                        AND #{endTime}
-                    ) AS collectNum,
-                    (
-                    SELECT
-                        COUNT( 1 )
-                    FROM
-                        user_action_info uai
-                    WHERE
-                        uai.type = 1
-                        AND uai.goods_id = gi.id
-                        AND uai.create_time BETWEEN #{startTime}
-                        AND #{endTime}
-                    ) AS click,
-                    (
-                    SELECT
-                        COUNT( 1 )
-                    FROM
-                        user_action_info uai
-                    WHERE
-                        uai.type = 2
-                        AND uai.goods_id = gi.id
-                        AND uai.create_time BETWEEN #{startTime}
-                        AND #{endTime}
-                    ) AS `share`,
-                    (
-                    SELECT
-                        COUNT( 1 )
-                    FROM
-                        user_action_info uai
-                    WHERE
-                        uai.type = 4
-                        AND uai.goods_id = gi.id
-                        AND uai.create_time BETWEEN #{startTime}
-                        AND #{endTime}
-                    ) AS sharein
+                    CASE
+
+                            WHEN action_type = 1 THEN
+                            CONCAT( num, gwi.click_operator, gwi.click_rate )
+                            WHEN action_type = 2 THEN
+                            concat( num, gwi.collect_operator, gwi.collect_rate )
+                            WHEN action_type = 3 THEN
+                            concat( num, gwi.pay_operator, gwi.pay_rate )
+                            WHEN action_type = 4 THEN
+                            concat( num, gwi.share_operator, gwi.share_rate )
+                            WHEN action_type = 5 THEN
+                            concat( num, gwi.sharein_operator, gwi.sharein_rate )
+                        END
+                        ) SEPARATOR '+'
+                    ) AS compute
                 FROM
-                    goods_info gi
-                WHERE
-                gi.`status` IN ( '00A' )) r
-                LEFT JOIN goods_weight_info gwi ON 1 =1
+                    (
+                    SELECT
+                        goods_id,
+                        action_type,
+                        count( 1 ) AS num
+                    FROM
+                        user_action_log ual,
+                        goods_info gi
+                    WHERE
+                        gi.id = ual.goods_id
+                        AND ual.create_time &gt; #{startTime}
+                        AND ual.create_time &lt; #{endTime}
+                        AND ual.`status` = 1
+                        AND gi.`status` = '00A'
+                    GROUP BY
+                        goods_id,
+                        action_type
+                    ) r
+                    LEFT JOIN goods_weight_info gwi ON 1 = 1
+                    AND type = 1
+            GROUP BY
+                goods_id
     </select>
     <select id="queryGoodsCjgWeight" resultType="com.tjlou.task.goods.GoodsCjgWeightModel">
             SELECT
