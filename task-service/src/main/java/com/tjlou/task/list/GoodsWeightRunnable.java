@@ -7,6 +7,7 @@ import com.tjlou.mybatis.auto.mysql.sps.entity.GoodsExtInfo;
 import com.tjlou.mybatis.auto.mysql.sps.service.GoodsExtInfoService;
 import com.tjlou.task.goods.WeightModel;
 import com.tjlou.task.service.GoodsService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  */
 @Scope("prototype")
 @Component
+@Slf4j
 public class GoodsWeightRunnable implements Runnable {
 
     @Autowired
@@ -77,7 +79,7 @@ public class GoodsWeightRunnable implements Runnable {
                 goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().notIn(GoodsExtInfo.GOODS_ID, data.stream().map(x -> x.getGoodsId()).collect(Collectors.toList())));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("计算商品权重出现了问题",e);
         }finally{
             lock.unlock();
             jedis.close();
