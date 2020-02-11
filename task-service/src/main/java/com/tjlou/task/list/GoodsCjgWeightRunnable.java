@@ -1,5 +1,6 @@
 package com.tjlou.task.list;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.gaby.lock.ContentionLock;
 import com.gaby.util.DateUtil;
 import com.tjlou.mybatis.auto.mysql.sps.entity.GoodsExtInfo;
@@ -60,11 +61,9 @@ public class GoodsCjgWeightRunnable implements Runnable{
             if (CollectionUtils.isNotEmpty(goodsCjgWeightModels)) {
                 for (GoodsCjgWeightModel model : goodsCjgWeightModels) {
                     GoodsExtInfo update = new GoodsExtInfo();
-                    update.setId(model.getGoodsId());
-                    update.setGoodsId(model.getGoodsId());
                     // 权重值=订单数/点击数
                     update.setCjgWeight(model.getOrderNum() / model.getClickNum());
-                    goodsExtInfoService.updateById(update);
+                    goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().eq(GoodsExtInfo.GOODS_ID, model.getGoodsId()));
                 }
                 logger.info("完成了超级购活动的商品权重计算");
             }
