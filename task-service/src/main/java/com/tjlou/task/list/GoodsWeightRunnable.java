@@ -20,6 +20,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @discrption:计算商品的权重
@@ -73,7 +74,7 @@ public class GoodsWeightRunnable implements Runnable {
                 //其余商品 权重清0
                 GoodsExtInfo update = new GoodsExtInfo();
                 update.setWeight(0d);
-                goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().notIn(GoodsExtInfo.GOODS_ID, data.stream().map(x -> x.getGoodsId())));
+                goodsExtInfoService.update(update, new EntityWrapper<GoodsExtInfo>().notIn(GoodsExtInfo.GOODS_ID, data.stream().map(x -> x.getGoodsId()).collect(Collectors.toList())));
             }
         } catch (Exception e) {
             e.printStackTrace();
